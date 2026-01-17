@@ -3,6 +3,7 @@
 Complete UVM testbench for verifying an AXI4-Lite slave memory module.
 
 ## 📁 Project Structure
+```
 axi4-lite-uvm/
 ├── rtl/
 │ └── axi_slave_mem.sv # DUT: AXI4-Lite slave memory
@@ -20,8 +21,7 @@ axi4-lite-uvm/
 │ ├── axi_pkg.sv # UVM package
 │ └── tb_top.sv # Testbench top
 └── Makefile
-
-text
+```
 
 ## 🛠️ Simulation
 
@@ -40,8 +40,10 @@ vsim -c tb_top +UVM_TESTNAME=axi_write_read_test -do "run -all; quit"
 
 # With GUI and waveforms
 vsim tb_top +UVM_TESTNAME=axi_random_test
-Xcelium (Cadence)
-bash
+```
+
+### Xcelium (Cadence)
+```bash
 xrun -uvm \
      -access +rwc \
      rtl/axi_slave_mem.sv \
@@ -49,8 +51,10 @@ xrun -uvm \
      tb/axi_pkg.sv \
      tb/tb_top.sv \
      +UVM_TESTNAME=axi_write_read_test
-VCS (Synopsys)
-bash
+```
+
+### VCS (Synopsys)
+```bash
 vcs -sverilog -ntb_opts uvm-1.2 \
     -timescale=1ns/1ps \
     rtl/axi_slave_mem.sv \
@@ -58,32 +62,45 @@ vcs -sverilog -ntb_opts uvm-1.2 \
     tb/axi_pkg.sv \
     tb/tb_top.sv \
     +UVM_TESTNAME=axi_random_test
-Vivado Simulator
-bash
+```
+
+### Vivado Simulator
+```bash
 xvlog -sv rtl/axi_slave_mem.sv tb/axi_if.sv tb/axi_pkg.sv tb/tb_top.sv -L uvm
 xelab tb_top -L uvm -debug all
 xsim work.tb_top -testplusarg UVM_TESTNAME=axi_write_read_test -runall
-🧪 Available Tests
-axi_write_read_test - Basic write followed by read verification
+```
 
-axi_random_test - Randomized transaction testing
+## 🧪 Available Tests
 
-📊 Statistics
-Total Lines: 945
+- axi_write_read_test - Basic write followed by read verification
 
-RTL: 139 lines
+- axi_random_test - Randomized transaction testing
 
-Testbench: 806 lines
+## 📊 Statistics
 
-Files: 12
+- **Total Lines**: 945
 
-⚙️ Features
+- **RTL**: 139 lines
+
+- **Testbench**: 806 lines
+
+- **Files**: 12
+
+## ⚙️ Features
+
 ✅ Full UVM architecture (driver, monitor, scoreboard, coverage)
+
 ✅ AXI4-Lite protocol compliance
+
 ✅ Write/Read transaction checking
+
 ✅ Response verification (OKAY, SLVERR)
+
 ✅ Functional coverage for addresses and operations
+
 ✅ Randomized sequences
 
-📝 Note
+## 📝 Note
+
 This testbench uses SystemVerilog UVM. Verilator's UVM support is experimental - use commercial simulators (QuestaSim, Xcelium, VCS, Vivado) for production verification.
