@@ -1,0 +1,10 @@
+# Build artifacts
+obj_dir/
+*.vcd
+*.log
+*.vvp
+
+# Editor files
+*.swp
+*~
+.DS_Store
