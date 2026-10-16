@@ -1,3 +1,4 @@
+`timescale 1ns/1ps
 // AXI4-Lite Testbench Top
 module tb_top;
   
@@ -50,6 +51,7 @@ module tb_top;
   initial begin
     rst_n = 0;
     repeat(5) @(posedge clk);
+    @(negedge clk);
     rst_n = 1;
   end
   
@@ -66,7 +68,7 @@ module tb_top;
   initial begin
     #10ms;
     $display("TIMEOUT: Test did not complete!");
-    $finish;
+    $fatal(1, "AXI test timeout");
   end
   
   // Waveform dump

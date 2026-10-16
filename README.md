@@ -104,3 +104,9 @@ xsim work.tb_top -testplusarg UVM_TESTNAME=axi_write_read_test -runall
 ## 📝 Note
 
 This testbench uses SystemVerilog UVM. Verilator's UVM support is experimental - use commercial simulators (QuestaSim, Xcelium, VCS, Vivado) for production verification.
+
+## Reproducible RTL checks
+
+Run `make rtl-test` with Icarus Verilog. This self-checking test covers independent AW/W arrival order, byte strobes, response backpressure, reset data and invalid-address SLVERR. The slave accepts one outstanding write and one outstanding read, initializes memory on reset, and rejects addresses outside MEM_DEPTH words.
+
+The UVM target requires `UVM_HOME` pointing to an actual supported UVM source checkout; Verilator's `vltstd` directory is not UVM. `make compile UVM_HOME=/path/to/uvm` includes the package and source paths. RTL CI does not validate the complete UVM environment.

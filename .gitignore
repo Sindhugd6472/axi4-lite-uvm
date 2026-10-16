@@ -8,3 +8,10 @@ obj_dir/
 *.swp
 *~
 .DS_Store
+
+obj_dir/
+*.vcd
+*.log
+__pycache__/
+core
+core.*
