@@ -20,6 +20,9 @@ class axi_transaction extends uvm_sequence_item;
   rand int bvalid_delay;   // Cycles before slave responds
   
   // Constraints
+  // Default sequences exercise the implemented 1KB memory window.
+  // Dedicated error tests may disable this constraint before using invalid addresses.
+  constraint addr_range_c { addr inside {[32'h0:32'h3ff]}; }
   constraint addr_align_c {
     addr[1:0] == 2'b00;  // 32-bit aligned addresses
   }

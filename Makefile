@@ -7,13 +7,15 @@ TB_DIR = tb
 # Files
 RTL_FILES = $(RTL_DIR)/axi_slave_mem.sv
 TB_FILES = $(TB_DIR)/axi_if.sv \
+           $(TB_DIR)/axi_pkg.sv \
            $(TB_DIR)/tb_top.sv
 
 # UVM Path
-UVM_HOME = /usr/local/share/verilator/include/vltstd
+UVM_HOME ?=
+VERILATOR ?= verilator
 
 # Verilator flags
-VFLAGS = --cc --exe --build -j 0 \
+VFLAGS = --binary -j 2 \
          --trace \
          --timing \
          -Wall \
@@ -27,7 +29,8 @@ all: compile
 # Compile
 .PHONY: compile
 compile:
-	verilator $(VFLAGS) $(RTL_FILES) $(TB_FILES)
+	@test -f "$(UVM_HOME)/src/uvm_pkg.sv" || (echo "Set UVM_HOME to a supported UVM source checkout"; exit 1)
+	$(VERILATOR) $(VFLAGS) +incdir+$(UVM_HOME)/src +incdir+$(TB_DIR) $(UVM_HOME)/src/uvm_pkg.sv $(RTL_FILES) $(TB_FILES)
 
 # Run specific test
 .PHONY: run
@@ -60,3 +63,8 @@ help:
 	@echo "  make run_random   - Run random test"
 	@echo "  make wave         - View waveforms"
 	@echo "  make clean        - Clean build files"
+
+.PHONY: rtl-test
+rtl-test:
+	iverilog -g2012 -s axi_rtl_tb -o /tmp/axi_rtl_sim rtl/axi_slave_mem.sv tests/axi_rtl_tb.sv
+	vvp /tmp/axi_rtl_sim

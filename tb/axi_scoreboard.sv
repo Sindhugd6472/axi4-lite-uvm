@@ -29,6 +29,9 @@ class axi_scoreboard extends uvm_scoreboard;
   
   // Analyze transactions from monitor
   function void write(axi_transaction tr);
+    if (tr.resp != ((tr.addr >> 2) < 256 ? 2'b00 : 2'b10))
+      `uvm_error(get_type_name(), "Unexpected AXI response")
+    if (tr.resp != 0) return;
     if (tr.trans_type == axi_transaction::WRITE) begin
       process_write(tr);
     end else begin

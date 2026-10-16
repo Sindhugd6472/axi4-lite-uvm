@@ -3,7 +3,7 @@ class axi_master_driver extends uvm_driver #(axi_transaction);
   
   `uvm_component_utils(axi_master_driver)
   
-  virtual axi_if.master vif;
+  virtual axi_if vif;
   
   function new(string name = "axi_master_driver", uvm_component parent = null);
     super.new(name, parent);
@@ -17,6 +17,7 @@ class axi_master_driver extends uvm_driver #(axi_transaction);
   
   task run_phase(uvm_phase phase);
     reset_signals();
+    wait (vif.rst_n === 1);
     
     forever begin
       seq_item_port.get_next_item(req);
