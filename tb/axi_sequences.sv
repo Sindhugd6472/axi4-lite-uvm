@@ -21,6 +21,7 @@ class axi_write_read_seq extends axi_base_sequence;
   task body();
     axi_transaction tr;
     bit [31:0] addresses[$];
+    bit [31:0] target_addr;
     repeat (10) begin
       tr = axi_transaction::type_id::create("write_tr");
       start_item(tr);
@@ -30,9 +31,10 @@ class axi_write_read_seq extends axi_base_sequence;
       finish_item(tr);
     end
     foreach (addresses[i]) begin
+      target_addr = addresses[i];
       tr = axi_transaction::type_id::create("read_tr");
       start_item(tr);
-      if (!tr.randomize() with {trans_type == READ; addr == local::addresses[i];})
+      if (!tr.randomize() with {trans_type == READ; addr == local::target_addr;})
         `uvm_fatal(get_type_name(), "READ randomization failed")
       finish_item(tr);
     end
