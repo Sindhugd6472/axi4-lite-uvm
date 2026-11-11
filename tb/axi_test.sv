@@ -61,7 +61,8 @@ class axi_random_test extends axi_base_test;
     
     phase.raise_objection(this);
     seq = axi_random_seq::type_id::create("seq");
-    assert(seq.randomize());
+    if (!seq.randomize())
+      `uvm_fatal(get_type_name(), "Sequence randomization failed")
     seq.start(env.agent.sequencer);
     #100ns;
     phase.drop_objection(this);
