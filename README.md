@@ -1,6 +1,6 @@
 # AXI4-Lite UVM Verification Environment
 
-Complete UVM testbench for verifying an AXI4-Lite slave memory module.
+SystemVerilog/UVM testbench implementation for an AXI4-Lite slave memory module. Simulator execution has not been independently validated in this review.
 
 ## 📁 Project Structure
 ```
@@ -25,51 +25,20 @@ axi4-lite-uvm/
 
 ## 🛠️ Simulation
 
-### QuestaSim / ModelSim
+### Questa/ModelSim with UVM support
+
+The Makefile uses `vlib`, `vlog`, and `vsim` and compiles the RTL, AXI interface, UVM package, and testbench top in dependency order.
+
 ```bash
-# Compile UVM library
-vlib work
-vlog -L $UVM_HOME/src $UVM_HOME/src/uvm_pkg.sv
-
-# Compile design
-vlog rtl/axi_slave_mem.sv
-vlog -L work tb/axi_if.sv tb/axi_pkg.sv tb/tb_top.sv
-
-# Run test
-vsim -c tb_top +UVM_TESTNAME=axi_write_read_test -do "run -all; quit"
-
-# With GUI and waveforms
-vsim tb_top +UVM_TESTNAME=axi_random_test
+make run
+make run_random
 ```
 
-### Xcelium (Cadence)
-```bash
-xrun -uvm \
-     -access +rwc \
-     rtl/axi_slave_mem.sv \
-     tb/axi_if.sv \
-     tb/axi_pkg.sv \
-     tb/tb_top.sv \
-     +UVM_TESTNAME=axi_write_read_test
-```
+You can also select a registered UVM test with `make run UVM_TEST=axi_random_test`.
 
-### VCS (Synopsys)
-```bash
-vcs -sverilog -ntb_opts uvm-1.2 \
-    -timescale=1ns/1ps \
-    rtl/axi_slave_mem.sv \
-    tb/axi_if.sv \
-    tb/axi_pkg.sv \
-    tb/tb_top.sv \
-    +UVM_TESTNAME=axi_random_test
-```
+**Validation status:** These commands are provided as a starting point; the current review did not execute them on a licensed UVM simulator. This repository does not currently include automated simulation CI. Before claiming a passing regression, confirm compile success, UVM error/fatal counts, scoreboard results, and expected waveform behavior.
 
-### Vivado Simulator
-```bash
-xvlog -sv rtl/axi_slave_mem.sv tb/axi_if.sv tb/axi_pkg.sv tb/tb_top.sv -L uvm
-xelab tb_top -L uvm -debug all
-xsim work.tb_top -testplusarg UVM_TESTNAME=axi_write_read_test -runall
-```
+The previous Verilator Makefile used `--exe` without a C++ harness and was not a reproducible UVM build. Other simulators such as VCS or Xcelium may be usable, but their commands need to be validated for the installed versions.
 
 ## 🧪 Available Tests
 
@@ -91,7 +60,7 @@ xsim work.tb_top -testplusarg UVM_TESTNAME=axi_write_read_test -runall
 
 ✅ Full UVM architecture (driver, monitor, scoreboard, coverage)
 
-✅ AXI4-Lite protocol compliance
+✅ AXI4-Lite protocol-focused stimulus and checking (full compliance not established)
 
 ✅ Write/Read transaction checking
 
