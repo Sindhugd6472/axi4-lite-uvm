@@ -1,62 +1,35 @@
-# AXI4-Lite UVM Makefile for Verilator
+# AXI4-Lite UVM simulation with Questa/ModelSim.
+# Requires a simulator installation with UVM support and vlog/vsim on PATH.
+# Not validated in this environment; see README for simulator notes.
+SHELL := /bin/sh
+VLOG ?= vlog
+VSIM ?= vsim
+UVM_TEST ?= axi_write_read_test
 
-# Directories
-RTL_DIR = rtl
-TB_DIR = tb
+RTL := rtl/axi_slave_mem.sv
+TB := tb/axi_if.sv tb/axi_pkg.sv tb/tb_top.sv
 
-# Files
-RTL_FILES = $(RTL_DIR)/axi_slave_mem.sv
-TB_FILES = $(TB_DIR)/axi_if.sv \
-           $(TB_DIR)/tb_top.sv
-
-# UVM Path
-UVM_HOME = /usr/local/share/verilator/include/vltstd
-
-# Verilator flags
-VFLAGS = --cc --exe --build -j 0 \
-         --trace \
-         --timing \
-         -Wall \
-         -Wno-fatal \
-         --top-module tb_top
-
-# Default target
-.PHONY: all
+.PHONY: all compile run run_random wave clean help
 all: compile
 
-# Compile
-.PHONY: compile
 compile:
-	verilator $(VFLAGS) $(RTL_FILES) $(TB_FILES)
+	vlib work
+	$(VLOG) -sv +incdir+tb $(RTL) $(TB)
 
-# Run specific test
-.PHONY: run
-run:
-	@echo "Running AXI4-Lite test..."
-	./obj_dir/Vtb_top +UVM_TESTNAME=axi_write_read_test +UVM_VERBOSITY=UVM_MEDIUM
+run: compile
+	$(VSIM) -c tb_top +UVM_TESTNAME=$(UVM_TEST) -do "run -all; quit -f"
 
-# Run random test
-.PHONY: run_random
-run_random:
-	./obj_dir/Vtb_top +UVM_TESTNAME=axi_random_test +UVM_VERBOSITY=UVM_MEDIUM
+run_random: compile
+	$(VSIM) -c tb_top +UVM_TESTNAME=axi_random_test -do "run -all; quit -f"
 
-# View waveform
-.PHONY: wave
 wave:
-	gtkwave axi_tb.vcd &
+	gtkwave axi_tb.vcd
 
-# Clean
-.PHONY: clean
 clean:
-	rm -rf obj_dir *.vcd *.log
+	rm -rf work transcript vsim.wlf *.vcd *.log
 
-# Help
-.PHONY: help
 help:
-	@echo "AXI4-Lite UVM Verification Makefile"
-	@echo "Usage:"
-	@echo "  make compile      - Compile the testbench"
-	@echo "  make run          - Run write-read test"
-	@echo "  make run_random   - Run random test"
-	@echo "  make wave         - View waveforms"
-	@echo "  make clean        - Clean build files"
+	@echo "make run         - Compile and run axi_write_read_test in Questa/ModelSim"
+	@echo "make run_random  - Compile and run axi_random_test"
+	@echo "make run UVM_TEST=axi_random_test - Select a registered UVM test"
+	@echo "Requires Questa/ModelSim with UVM support; not a Verilator make flow."
