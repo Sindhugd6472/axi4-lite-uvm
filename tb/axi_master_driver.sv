@@ -3,7 +3,7 @@ class axi_master_driver extends uvm_driver #(axi_transaction);
   
   `uvm_component_utils(axi_master_driver)
   
-  virtual axi_if.master vif;
+  virtual axi_if vif;
   
   function new(string name = "axi_master_driver", uvm_component parent = null);
     super.new(name, parent);
