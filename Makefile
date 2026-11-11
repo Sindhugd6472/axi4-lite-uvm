@@ -17,10 +17,10 @@ compile:
 	$(VLOG) -sv +incdir+tb $(RTL) $(TB)
 
 run: compile
-	$(VSIM) -c tb_top +UVM_TESTNAME=$(UVM_TEST) -do "run -all; quit -f"
+	$(VSIM) -c tb_top +UVM_TESTNAME=$(UVM_TEST) -do "onerror {quit -code 1}; run -all; quit -f"
 
 run_random: compile
-	$(VSIM) -c tb_top +UVM_TESTNAME=axi_random_test -do "run -all; quit -f"
+	$(VSIM) -c tb_top +UVM_TESTNAME=axi_random_test -do "onerror {quit -code 1}; run -all; quit -f"
 
 wave:
 	gtkwave axi_tb.vcd
