@@ -3,7 +3,7 @@ class axi_monitor extends uvm_monitor;
   
   `uvm_component_utils(axi_monitor)
   
-  virtual axi_if.monitor vif;
+  virtual axi_if vif;
   uvm_analysis_port #(axi_transaction) item_collected_port;
   
   function new(string name = "axi_monitor", uvm_component parent = null);
