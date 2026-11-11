@@ -65,8 +65,7 @@ module tb_top;
   // Timeout watchdog
   initial begin
     #10ms;
-    $display("TIMEOUT: Test did not complete!");
-    $finish;
+    $fatal(1, "TIMEOUT: UVM test did not complete");
   end
   
   // Waveform dump
