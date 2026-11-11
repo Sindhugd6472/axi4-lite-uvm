@@ -21,7 +21,8 @@ class axi_transaction extends uvm_sequence_item;
   
   // Constraints
   constraint addr_align_c {
-    addr[1:0] == 2'b00;  // 32-bit aligned addresses
+    addr inside {[32'h0000_0000:32'h0000_03FC]};
+    addr[1:0] == 2'b00;  // 32-bit aligned addresses within 1KB DUT memory
   }
   
   constraint reasonable_delays_c {
