@@ -49,7 +49,11 @@ module tb_top;
   // Reset generation
   initial begin
     rst_n = 0;
-    repeat(5) @(posedge clk);
+    repeat (5) @(negedge clk);
+    rst_n = 1;
+    repeat (10) @(negedge clk);
+    rst_n = 0;
+    repeat (3) @(negedge clk);
     rst_n = 1;
   end
   
@@ -59,7 +63,7 @@ module tb_top;
     uvm_config_db#(virtual axi_if)::set(null, "*", "vif", vif);
     
     // Run test
-    run_test();
+    run_test("axi_reset_test");
   end
   
   // Timeout watchdog
