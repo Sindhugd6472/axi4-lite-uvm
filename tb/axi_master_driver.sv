@@ -50,8 +50,9 @@ class axi_master_driver extends uvm_driver #(axi_transaction);
         @(vif.master_cb);
         vif.master_cb.awaddr <= tr.addr;
         vif.master_cb.awvalid <= 1;
-        wait(vif.master_cb.awready);
-        @(vif.master_cb);
+        do begin
+          @(vif.master_cb);
+        end while (!vif.master_cb.awready);
         vif.master_cb.awvalid <= 0;
       end
       
@@ -61,8 +62,9 @@ class axi_master_driver extends uvm_driver #(axi_transaction);
         vif.master_cb.wdata <= tr.data;
         vif.master_cb.wstrb <= tr.strb;
         vif.master_cb.wvalid <= 1;
-        wait(vif.master_cb.wready);
-        @(vif.master_cb);
+        do begin
+          @(vif.master_cb);
+        end while (!vif.master_cb.wready);
         vif.master_cb.wvalid <= 0;
       end
     join
@@ -85,8 +87,9 @@ class axi_master_driver extends uvm_driver #(axi_transaction);
     @(vif.master_cb);
     vif.master_cb.araddr <= tr.addr;
     vif.master_cb.arvalid <= 1;
-    wait(vif.master_cb.arready);
-    @(vif.master_cb);
+    do begin
+      @(vif.master_cb);
+    end while (!vif.master_cb.arready);
     vif.master_cb.arvalid <= 0;
     
     // Read Data Channel
