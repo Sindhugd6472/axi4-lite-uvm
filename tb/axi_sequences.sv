@@ -123,3 +123,27 @@ class axi_protocol_seq extends axi_base_sequence;
     send_read(32'h004,0);
   endtask
 endclass
+
+
+// One write with delayed BREADY: reset must cancel the pending response.
+class axi_reset_seq extends axi_base_sequence;
+  `uvm_object_utils(axi_reset_seq)
+
+  function new(string name = "axi_reset_seq");
+    super.new(name);
+  endfunction
+
+  task body();
+    axi_transaction tr;
+    tr = axi_transaction::type_id::create("reset_write");
+    start_item(tr);
+    tr.trans_type = axi_transaction::WRITE;
+    tr.addr = 32'h00000010;
+    tr.data = 32'hA5A5A5A5;
+    tr.strb = 4'b1111;
+    tr.awready_delay = 0;
+    tr.wready_delay = 0;
+    tr.bvalid_delay = 20; // Keep BREADY low through the second reset.
+    finish_item(tr);
+  endtask
+endclass
