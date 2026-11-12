@@ -9,6 +9,18 @@ class axi_scoreboard extends uvm_scoreboard;
     item_collected_export=new("item_collected_export",this);
   endfunction
 
+  virtual axi_if vif;
+
+  task run_phase(uvm_phase phase);
+    if (!uvm_config_db#(virtual axi_if)::get(this, "", "vif", vif))
+      `uvm_fatal(get_type_name(), "Virtual interface not found")
+    forever begin
+      @(negedge vif.rst_n);
+      mem.delete();
+      `uvm_info("AXI_RESET", "Scoreboard memory cleared on reset", UVM_LOW)
+    end
+  endtask
+
   function bit invalid_addr(bit [31:0] addr);
     return (addr[1:0] != 0 || addr > 32'h0000_03FC);
   endfunction
