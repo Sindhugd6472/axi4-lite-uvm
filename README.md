@@ -55,6 +55,32 @@ The previous Verilator Makefile used `--exe` without a C++ harness and was not a
 
 Place `rtl/axi_slave_mem.sv` in `design.sv`. In `testbench.sv`, include `axi_if.sv` before the `axi_pkg` package and include `tb_top.sv` after `endpackage`. Add the UVM class files as tabs (they are included by `axi_pkg.sv`). Select SystemVerilog/Verilog, UVM 1.2, and Siemens Questa 2025.2. In the playground's top module, use `run_test("axi_write_read_test")` or `run_test("axi_random_test")`. The repository version instead takes a `+UVM_TESTNAME` argument.
 
+## 🔧 Protocol-correctness rewrite (review branch — NOT YET SIMULATOR VALIDATED)
+
+The `fix/axi4lite-independent-handshakes` branch contains a rewrite that **has not yet been run in Questa**. It must not be described as passing until fresh simulation logs show that result. The older EDA Playground links above validate the **earlier** implementation only.
+
+Changes in this branch:
+- Independently buffer AW and W before committing a write; keep BVALID/BRESP stable until BREADY.
+- Accept one read at a time and keep RVALID/RDATA/RRESP stable until RREADY.
+- Reset all 256 memory words to zero so unwritten reads are deterministic.
+- Return SLVERR for unaligned and out-of-range accesses.
+- Driver exercises independent AW/W arrival timing and delayed BREADY/RREADY.
+- Monitor pairs independently arriving AW/W handshakes, observes B/R responses.
+- Scoreboard checks response codes, strobes, read data and traffic counts.
+- Assertions check VALID and payload stability under backpressure on all five AXI channels.
+
+New targeted test: `axi_protocol_test` (AW-before-W, W-before-AW, byte strobes, 0x3FC boundary, delayed responses and out-of-range errors).
+
+To try locally with a compatible licensed Questa installation:
+
+```bash
+make run
+make run_random
+make run_protocol
+```
+
+**Next validation:** Run all three tests with this branch's current RTL and testbench together; inspect compiler errors, assertion failures, UVM error/fatal counts, scoreboard summaries and coverage. The 82.14% reported by the older runs must not be assumed for this rewrite. Full AXI4-Lite compliance also needs further stress tests, resets during traffic, concurrent read/write and larger regression coverage.
+
 ## 📊 Statistics
 
 - **Total Lines**: 945
@@ -69,7 +95,7 @@ Place `rtl/axi_slave_mem.sv` in `design.sv`. In `testbench.sv`, include `axi_if.
 
 ✅ Full UVM architecture (driver, monitor, scoreboard, coverage)
 
-✅ AXI4-Lite protocol-focused stimulus and checking (full compliance not established)
+✅ AXI4-Lite protocol-focused stimulus and checking (full compliance still requires broader verification)
 
 ✅ Write/Read transaction checking
 
