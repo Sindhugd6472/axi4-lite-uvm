@@ -46,24 +46,33 @@ module tb_top;
     forever #5ns clk = ~clk;
   end
   
-  // Reset generation
-  initial begin
-    rst_n = 0;
-    repeat (5) @(negedge clk);
-    rst_n = 1;
-    repeat (10) @(negedge clk);
-    rst_n = 0;
-    repeat (3) @(negedge clk);
-    rst_n = 1;
-  end
-  
-  // UVM test flow
-  initial begin
-    // Pass interface to UVM
+  // Select a test with +UVM_TESTNAME=<name>; default to normal write/read.
+  // Reset timing and test selection share one value to avoid mismatches.
+  initial begin : test_and_reset
+    string test_name;
+    if (!$value$plusargs("UVM_TESTNAME=%s", test_name))
+      test_name = "axi_write_read_test";
+
     uvm_config_db#(virtual axi_if)::set(null, "*", "vif", vif);
-    
-    // Run test
-    run_test("axi_reset_test");
+
+    fork
+      begin : reset_generation
+        rst_n = 0;
+        repeat (5) @(negedge clk);
+        rst_n = 1;
+
+        // Only the dedicated reset test interrupts an outstanding response.
+        if (test_name == "axi_reset_test") begin
+          repeat (10) @(negedge clk);
+          rst_n = 0;
+          repeat (3) @(negedge clk);
+          rst_n = 1;
+        end
+      end
+      begin : uvm_test
+        run_test(test_name);
+      end
+    join
   end
   
   // Timeout watchdog
