@@ -18,11 +18,33 @@ class axi_master_driver extends uvm_driver #(axi_transaction);
     wait (vif.rst_n === 1'b1);
     forever begin
       seq_item_port.get_next_item(req);
-      if (req.trans_type == axi_transaction::WRITE)
-        drive_write(req);
-      else
-        drive_read(req);
+      // A reset may interrupt an in-flight AXI operation. Cancel all
+      // channel threads before accepting another sequence item.
+      drive_with_reset(req);
       seq_item_port.item_done();
+    end
+  endtask
+
+  task drive_with_reset(axi_transaction tr);
+    bit reset_seen;
+    reset_seen = 0;
+    fork
+      begin : transaction_thread
+        if (tr.trans_type == axi_transaction::WRITE)
+          drive_write(tr);
+        else
+          drive_read(tr);
+      end
+      begin : reset_thread
+        @(negedge vif.rst_n);
+        reset_seen = 1;
+      end
+    join_any
+    disable fork;
+    if (reset_seen) begin
+      `uvm_warning("AXI_RESET", "Transaction canceled by reset")
+      reset_signals();
+      wait (vif.rst_n === 1'b1);
     end
   endtask
 
