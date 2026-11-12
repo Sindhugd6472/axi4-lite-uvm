@@ -69,3 +69,19 @@ class axi_random_test extends axi_base_test;
   endtask
   
 endclass
+
+// Directed independent-channel and backpressure test.
+class axi_protocol_test extends axi_base_test;
+  `uvm_component_utils(axi_protocol_test)
+  function new(string name="axi_protocol_test",uvm_component parent=null);
+    super.new(name,parent);
+  endfunction
+  task run_phase(uvm_phase phase);
+    axi_protocol_seq seq;
+    phase.raise_objection(this);
+    seq=axi_protocol_seq::type_id::create("seq");
+    seq.start(env.agent.sequencer);
+    #100ns;
+    phase.drop_objection(this);
+  endtask
+endclass
