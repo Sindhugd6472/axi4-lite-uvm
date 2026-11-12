@@ -1,6 +1,6 @@
 # AXI4-Lite UVM Verification Environment
 
-SystemVerilog/UVM testbench implementation for an AXI4-Lite slave memory module. Simulator execution has not been independently validated in this review.
+SystemVerilog/UVM testbench implementation for an AXI4-Lite slave memory module. Two UVM tests were run successfully in EDA Playground using Siemens Questa 2025.2 and UVM 1.2, with implementation limitations noted below.
 
 ## 📁 Project Structure
 ```
@@ -36,15 +36,24 @@ make run_random
 
 You can also select a registered UVM test with `make run UVM_TEST=axi_random_test`.
 
-**Validation status:** These commands are provided as a starting point; the current review did not execute them on a licensed UVM simulator. This repository does not currently include automated simulation CI. Before claiming a passing regression, confirm compile success, UVM error/fatal counts, scoreboard results, and expected waveform behavior.
+**Validation status:** The two EDA Playground simulations below were run with Siemens Questa 2025.2 / UVM 1.2. The local `make` commands have not been separately validated, and this repository does not include automated simulator CI. Saved playgrounds specify a named test in `run_test(...)`; the repository's `tb_top.sv` intentionally uses `run_test()` with `+UVM_TESTNAME` supplied by the Makefile.
 
 The previous Verilator Makefile used `--exe` without a C++ harness and was not a reproducible UVM build. Other simulators such as VCS or Xcelium may be usable, but their commands need to be validated for the installed versions.
 
-## 🧪 Available Tests
+## 🧪 Executed UVM Tests (EDA Playground)
 
-- axi_write_read_test - Basic write followed by read verification
+| Test | Writes | Reads | Read matches | Mismatches | UVM errors / fatals | Coverage reported | Saved run |
+| --- | ---: | ---: | ---: | ---: | ---: | --- | --- |
+| `axi_write_read_test` | 10 | 10 | 10 | 0 | 0 / 0 | 82.14% | [Write-read run](https://www.edaplayground.com/x/9BXQ) |
+| `axi_random_test` | 19 | 20 | 20 | 0 | 0 / 0 | 82.14% | [Random run](https://www.edaplayground.com/x/haFZ) |
 
-- axi_random_test - Randomized transaction testing
+**Environment:** Siemens Questa 2025.2, UVM 1.2 (EDA Playground), November 11, 2026. Both runs compiled without errors. The simulator issued one nonfatal optimization warning about `+acc`.
+
+**Limitations:** These tests pass the included scoreboard for the exercised stimulus; they do **not** demonstrate complete AXI4-Lite compliance. The DUT write-data condition `wvalid && !wready && awready` is a synchronization workaround for the current driver and does not handle every independent AW/W channel arrival order. A fully decoupled handshake design and directed backpressure tests are still needed. Random reads often access unwritten addresses and compare as zero. The reported coverage is a custom testbench metric, not complete AXI4-Lite protocol coverage.
+
+## 🔬 Reproducing in EDA Playground
+
+Place `rtl/axi_slave_mem.sv` in `design.sv`. In `testbench.sv`, include `axi_if.sv` before the `axi_pkg` package and include `tb_top.sv` after `endpackage`. Add the UVM class files as tabs (they are included by `axi_pkg.sv`). Select SystemVerilog/Verilog, UVM 1.2, and Siemens Questa 2025.2. In the playground's top module, use `run_test("axi_write_read_test")` or `run_test("axi_random_test")`. The repository version instead takes a `+UVM_TESTNAME` argument.
 
 ## 📊 Statistics
 
@@ -64,7 +73,7 @@ The previous Verilator Makefile used `--exe` without a C++ harness and was not a
 
 ✅ Write/Read transaction checking
 
-✅ Response verification (OKAY, SLVERR)
+✅ Basic OKAY response observation (SLVERR/error behavior not comprehensively verified)
 
 ✅ Functional coverage for addresses and operations
 
