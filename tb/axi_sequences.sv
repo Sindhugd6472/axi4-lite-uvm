@@ -69,3 +69,57 @@ class axi_random_seq extends axi_base_sequence;
   endtask
   
 endclass
+
+// Directed protocol exercise: W-before-AW, AW-before-W, simultaneous channels,
+// write byte strobes, boundary addresses and delayed response acceptance.
+class axi_protocol_seq extends axi_base_sequence;
+  `uvm_object_utils(axi_protocol_seq)
+  function new(string name="axi_protocol_seq");
+    super.new(name);
+  endfunction
+
+  task send_write(bit [31:0] address, bit [31:0] value, bit [3:0] strobe,
+                  int aw_delay, int w_delay, int response_delay);
+    axi_transaction tr;
+    tr=axi_transaction::type_id::create("directed_write");
+    start_item(tr);
+    tr.trans_type=axi_transaction::WRITE;
+    tr.addr=address; tr.data=value; tr.strb=strobe;
+    tr.awready_delay=aw_delay; tr.wready_delay=w_delay;
+    tr.bvalid_delay=response_delay;
+    finish_item(tr);
+  endtask
+
+  task send_read(bit [31:0] address, int response_delay);
+    axi_transaction tr;
+    tr=axi_transaction::type_id::create("directed_read");
+    start_item(tr);
+    tr.trans_type=axi_transaction::READ;
+    tr.addr=address; tr.strb=4'b1111;
+    tr.awready_delay=0; tr.wready_delay=0;
+    tr.bvalid_delay=response_delay;
+    finish_item(tr);
+  endtask
+
+  task body();
+    // Write address first, write data three cycles later.
+    send_write(32'h000,32'h12345678,4'hf,0,3,4);
+    send_read(32'h000,3);
+    // Write data first, address four cycles later.
+    send_write(32'h3fc,32'hdeadbeef,4'hf,4,0,5);
+    send_read(32'h3fc,4);
+    // Simultaneous AW/W, then a partial update of the same word.
+    send_write(32'h100,32'haabbccdd,4'hf,0,0,0);
+    send_write(32'h100,32'h11223344,4'b0101,2,0,2);
+    send_read(32'h100,5);
+    // Back-to-back requests, other strobe lanes, repeated address.
+    send_write(32'h004,32'hffffffff,4'hf,1,1,1);
+    send_write(32'h004,32'h00112233,4'b1010,0,3,3);
+    send_read(32'h004,2);
+    // Invalid address requests must return SLVERR with zero read data.
+    send_write(32'h400,32'h5555aaaa,4'hf,0,2,3);
+    send_read(32'h400,2);
+    send_read(32'h002,1);
+    send_read(32'h004,0);
+  endtask
+endclass

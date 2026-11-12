@@ -55,6 +55,30 @@ The previous Verilator Makefile used `--exe` without a C++ harness and was not a
 
 Place `rtl/axi_slave_mem.sv` in `design.sv`. In `testbench.sv`, include `axi_if.sv` before the `axi_pkg` package and include `tb_top.sv` after `endpackage`. Add the UVM class files as tabs (they are included by `axi_pkg.sv`). Select SystemVerilog/Verilog, UVM 1.2, and Siemens Questa 2025.2. In the playground's top module, use `run_test("axi_write_read_test")` or `run_test("axi_random_test")`. The repository version instead takes a `+UVM_TESTNAME` argument.
 
+## 🔧 Updated protocol implementation — Questa regression results
+
+With the updated RTL, driver, monitor, scoreboard and protocol assertions, these three tests were executed in EDA Playground with **Siemens Questa 2025.2 / UVM 1.2** on **November 11, 2026**:
+
+| Test | Writes | Reads | Matches | Mismatches | Response errors | UVM errors / fatals | Reported coverage |
+| --- | ---: | ---: | ---: | ---: | ---: | --- | ---: |
+| `axi_protocol_test` | 7 | 7 | 7 | 0 | 0 | 0 / 0 | 73.81% |
+| `axi_write_read_test` | 10 | 10 | 10 | 0 | 0 | 0 / 0 | 82.14% |
+| `axi_random_test` | 19 | 20 | 20 | 0 | 0 | 0 / 0 | 82.14% |
+
+All three compiled without errors; Questa printed a nonfatal `+acc` optimization warning. These figures come from the user-provided EDA Playground logs; the standalone `make` commands and automated CI have not been separately executed.
+
+The implementation independently buffers AW and W, holds B/R responses under backpressure, resets memory deterministically and returns SLVERR for invalid addresses. The directed protocol test exercises different AW/W arrival orders, byte strobes, response stalls, 0x3FC boundary and invalid addresses. The scoreboard checks payload and response codes.
+
+**Limits:** These passing scenarios do **not** establish exhaustive AXI4-Lite compliance. More reset-during-traffic, simultaneous read/write, throughput, random-seed regression, parameter-width and stress testing is needed. The coverage number is the testbench's custom functional coverage, not complete protocol coverage. The saved playground links above refer to the original implementation, not this revision.
+
+Run the revised tests with a Questa-compatible simulator:
+
+```bash
+make run
+make run_random
+make run_protocol
+```
+
 ## 📊 Statistics
 
 - **Total Lines**: 945
@@ -69,7 +93,7 @@ Place `rtl/axi_slave_mem.sv` in `design.sv`. In `testbench.sv`, include `axi_if.
 
 ✅ Full UVM architecture (driver, monitor, scoreboard, coverage)
 
-✅ AXI4-Lite protocol-focused stimulus and checking (full compliance not established)
+✅ AXI4-Lite protocol-focused stimulus and checking (full compliance still requires broader verification)
 
 ✅ Write/Read transaction checking
 
