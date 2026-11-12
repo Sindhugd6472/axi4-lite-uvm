@@ -70,7 +70,10 @@ module axi_slave_mem #(
     if (!rst_n) begin
       wready <= 1'b0;
     end else begin
-      if (wvalid && !wready) begin
+      // Current testbench sends AW and W together; synchronize data capture
+      // with the registered address response. Independent channel arrivals
+      // still require a fully decoupled AXI4-Lite implementation.
+      if (wvalid && !wready && awready) begin
         wready <= 1'b1;
         // Write data to memory with byte enables
         for (int i = 0; i < 4; i++) begin
